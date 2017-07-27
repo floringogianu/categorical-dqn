@@ -12,7 +12,7 @@ report_freq: &report_freq 500 # episodes
 
 training:
   step_no: &step_no 1200000 # 2512000
-  batch_size: &batch_size 64
+  batch_size: &batch_size 32
   update_freq: &update_freq 4
   target_update_freq: &target_update_freq 24
   lr: &lr .000635
@@ -23,8 +23,8 @@ agent:
   report_freq: *report_freq
   rescale: no # where required
   epsilon: 1
-  epsilon_steps: 100000
-  experience_replay: 100000
+  epsilon_steps: 50000
+  experience_replay: 32000
   cuda: *cuda
   estimator: *estimator
   update_freq: *update_freq
