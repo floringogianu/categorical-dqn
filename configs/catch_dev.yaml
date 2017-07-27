@@ -22,8 +22,8 @@ agent:
   name: "categorical"
   report_freq: *report_freq
   rescale: no # where required
-  epsilon: 0.3
-  epsilon_steps: 50000
+  epsilon: 1
+  epsilon_steps: 100000
   experience_replay: 100000
   cuda: *cuda
   estimator: *estimator
@@ -35,7 +35,7 @@ agent:
   hist_len: 1
   hidden_size: *hidden_size
   # Specific to CategoricalDQN
-  atoms_no: 31
+  atoms_no: 51
   v_min: -3
   v_max: 3
 
