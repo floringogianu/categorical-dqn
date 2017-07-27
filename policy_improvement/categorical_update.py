@@ -52,12 +52,23 @@ class CategoricalPolicyImprovement(object):
 
         # Compute KL Divergence between PhiTZ || Z
         loss = - torch.sum(target_qa_probs * torch.log(qa_probs))
-        # loss.data.clamp(-1, 1)
 
+        """
+        print("Loss:            ", loss.data[0])
+        print("qa probs,        ", qa_probs.data.mean())
+        print("log(qa_probs),   ", torch.log(qa_probs).data.mean())
+        print("target_qa_probs, ", target_qa_probs.data.mean())
+        """
+        # loss.data.clamp(-1, 1)
         # Accumulate gradients
         loss.backward()
 
     def update_model(self):
+        """
+        for param in self.policy.parameters():
+            param.grad.data.clamp(-1, 1)
+        """
+
         self.optimizer.step()
         self.optimizer.zero_grad()
 
@@ -78,12 +89,12 @@ class CategoricalPolicyImprovement(object):
         gamma = (mask.float() * gamma).unsqueeze(1).expand_as(qa_probs)
 
         # Compute projection of the application of the Bellman operator.
-        bellman_op = rewards + gamma * qa_probs
+        bellman_op = rewards + gamma * self.support.unsqueeze(0).expand_as(rewards)
         bellman_op = torch.clamp(bellman_op, self.v_min, self.v_max)
 
         # Compute categorical indices for distributing the probability
         m = torch.zeros(batch_sz, self.atoms_no).type(self.dtype.FloatTensor)
-        b = (bellman_op - self.v_min) * self.delta_z
+        b = (bellman_op - self.v_min) / self.delta_z
         l = b.floor().type(self.dtype.LongTensor)
         u = b.ceil().type(self.dtype.LongTensor)
 
@@ -95,13 +106,11 @@ class CategoricalPolicyImprovement(object):
                 lidx = l[i][j]
                 m[i][lidx] = m[i][lidx] + qa_probs[i][j] * (uidx - b[i][j])
                 m[i][uidx] = m[i][uidx] + qa_probs[i][j] * (b[i][j] - lidx)
-        print("Slow: ", m)
-
         for i in range(batch_sz):
             m[i].index_add_(0, l[i], qa_probs[i] * (u[i].float() - b[i]))
             m[i].index_add_(0, u[i], qa_probs[i] * (b[i] - l[i].float()))
-        """
 
+        """
         # Optimized by https://github.com/tudor-berariu
         offset = torch.linspace(0, ((batch_sz - 1) * self.atoms_no), batch_sz)\
             .type(self.dtype.LongTensor)\
