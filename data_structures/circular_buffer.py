@@ -12,7 +12,7 @@ class CircularBuffer(object):
             self.memory.append(Transition(*args))
         else:
             self.memory[self.position] = Transition(*args)
-        self.position = self.position % self.capacity
+        self.position = (self.position + 1) % self.capacity
 
     def get_batch(self):
         return self.memory[:self.position]
