@@ -53,6 +53,8 @@ class CategoricalDQNAgent(DQNAgent):
         print("Slow Lr      : %.6f" % c.agent.lr)
         print("Atoms No     : %.2d" % c.agent.atoms_no)
         print("Support      : (%.2f, %.2f)" % (c.agent.v_min, c.agent.v_max))
+        print("----------- Other -----------")
+        print("Action No    : %d" % self.action_no)
         print("-----------------------------")
 
     def display_model_stats(self):

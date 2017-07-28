@@ -1,7 +1,9 @@
 # Bitdefender, 2107
-from .catch_net import CatchNet
+from estimators.atari_net import AtariNet
+from estimators.catch_net import CatchNet
 
 ESTIMATORS = {
+    "atari": AtariNet,
     "catch": CatchNet
 }
 
