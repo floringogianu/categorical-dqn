@@ -31,3 +31,4 @@ Train a DQN baseline with `python main.py -cf catch_dqn`.
 
 - [ ] Add some training curves.
 - [ ] Run on Atari.
+- [ ] Add proper evaluation.
