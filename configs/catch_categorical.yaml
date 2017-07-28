@@ -1,0 +1,48 @@
+# Example config file
+
+label: "CategoricalDQN"
+env_class: catch
+env_name: "Catcher-Level0-v0"
+estimator: &estimator catch
+hidden_size: &hidden_size 128
+seed: 23
+cuda: &cuda yes
+profiling: no
+report_freq: &report_freq 500 # episodes
+
+training:
+  step_no: &step_no 1200000 # 2512000
+  batch_size: &batch_size 64
+  update_freq: &update_freq 4
+  target_update_freq: &target_update_freq 24
+  lr: &lr .000635
+  gamma: &gamma 0.99
+
+agent:
+  name: "categorical"
+  report_freq: *report_freq
+  rescale: no # where required
+  epsilon: 0.3
+  epsilon_steps: 50000
+  experience_replay: 32000
+  cuda: *cuda
+  estimator: *estimator
+  update_freq: *update_freq
+  target_update_freq: *target_update_freq
+  batch_size: *batch_size
+  lr: *lr
+  gamma: *gamma
+  hist_len: 1
+  hidden_size: *hidden_size
+  # Specific to CategoricalDQN
+  atoms_no: 51
+  v_min: -3
+  v_max: 3
+
+evaluator:
+  eval_steps: 2400
+  eval_eps: 1000
+  eval_interval: 100000
+  eval_start: 100000
+  estimator: *estimator
+  cuda: *cuda
