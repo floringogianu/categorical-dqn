@@ -33,42 +33,31 @@ class CategoricalPolicyImprovement(object):
 
     def accumulate_gradient(self, batch_sz, states, actions, rewards,
                             next_states, mask):
-        """ Compute the temporal difference error.
-            td_error = (r + gamma * max Q(s_,a)) - Q(s,a)
+        """ Compute the difference between the return distributions of Q(s,a)
+            and TQ(s_,a).
         """
         states = Variable(states)
         actions = Variable(actions)
         rewards = Variable(rewards)
         next_states = Variable(next_states, volatile=True)
 
-        # Compute probabilities of Q(s,a)
+        # Compute probabilities of Q(s,a*)
         q_probs = self.policy(states)
         actions = actions.view(batch_sz, 1, 1)
         action_mask = actions.expand(batch_sz, 1, self.atoms_no)
         qa_probs = q_probs.gather(1, action_mask).squeeze()
 
-        # Compute distribution of Q(s_, a)
+        # Compute distribution of Q(s_,a)
         target_qa_probs = self._get_categorical(next_states, rewards, mask)
 
-        # Compute KL Divergence between PhiTZ || Z
+        # Compute the cross-entropy of phi(TZ(x_,a)) || Z(x,a)
+        qa_probs.data.clamp_(0.01, 0.99)  # Tudor's trick for avoiding nans
         loss = - torch.sum(target_qa_probs * torch.log(qa_probs))
 
-        """
-        print("Loss:            ", loss.data[0])
-        print("qa probs,        ", qa_probs.data.mean())
-        print("log(qa_probs),   ", torch.log(qa_probs).data.mean())
-        print("target_qa_probs, ", target_qa_probs.data.mean())
-        """
-        # loss.data.clamp(-1, 1)
         # Accumulate gradients
         loss.backward()
 
     def update_model(self):
-        """
-        for param in self.policy.parameters():
-            param.grad.data.clamp(-1, 1)
-        """
-
         self.optimizer.step()
         self.optimizer.zero_grad()
 
