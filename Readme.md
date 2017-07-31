@@ -35,3 +35,9 @@ Train a DQN baseline with `python main.py -cf catch_dqn`.
 - [ ] Add some training curves.
 - [ ] Run on Atari.
 - [ ] Add proper evaluation.
+
+## Results
+
+First row is with batch size of 64, the second with 32. Will run on more seeds and average for a better comparison. Working on adding Atari results.
+
+![Catch Learning Curves](img/learning_curves.png)
