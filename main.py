@@ -4,7 +4,7 @@ import torch, numpy  # noqa
 
 import utils
 from utils import Preprocessor
-from utils.VisdomMonitor import EvaluationMonitor
+from utils import EvaluationMonitor
 from agents import get_agent
 
 
