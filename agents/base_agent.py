@@ -5,15 +5,20 @@ from utils import not_implemented
 
 
 class BaseAgent(object):
-    def __init__(self, action_space):
+    def __init__(self, action_space, is_training):
         self.actions = action_space
         self.action_no = self.actions.n
 
+        self.is_training = is_training
         self.step_cnt = 0
         self.ep_cnt = 0
         self.ep_reward_cnt = 0
         self.ep_reward = []
         self.max_mean_rw = -100
+        if is_training:
+            print("Agent in training mode")
+        else:
+            print("Agent in evaluation mode")
 
     def evaluate_policy(self, obs):
         not_implemented(self)
@@ -46,13 +51,13 @@ class BaseAgent(object):
         fps = self.step_cnt / (time.time() - start_time)
 
         max_mean_rw = self.max_mean_rw
-        bg_color = 'on_cyan'
+        bg_color = 'on_blue'
         bg_color = 'on_magenta' if mean_rw > max_mean_rw else bg_color
         self.max_mean_rw = mean_rw if mean_rw > max_mean_rw else max_mean_rw
 
-        print(clr("[%s] step=%7d, rw/ep=%3.2f, fps=%.2f, @=%4d eps."
-              % (self.name, self.step_cnt, mean_rw, fps, len(self.ep_reward)),
-              'white', bg_color))
+        print(clr("[%s] step=%7d, fps=%.2f " % (self.name, self.step_cnt, fps),
+                  'grey', 'on_white')
+              + clr(" rw/ep=%3.2f " % mean_rw, 'white', bg_color))
         self.ep_reward.clear()
 
     def display_final_report(self, ep_cnt, step_cnt, elapsed_time):

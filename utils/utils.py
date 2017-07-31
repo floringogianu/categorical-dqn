@@ -1,7 +1,8 @@
 from termcolor import colored as clr
+from .VisdomMonitor import VisdomMonitor
 
 
-def get_new_env(env_name, seed=42, label="test"):
+def get_new_env(env_name, cmdl):
     """Configure the training environment and return an instance."""
     import logging
     import gym
@@ -14,10 +15,10 @@ def get_new_env(env_name, seed=42, label="test"):
     logger.setLevel(logging.WARNING)
 
     # Configure environment
-    outdir = '/tmp/nec/%s-results' % label
+    outdir = '/tmp/nec/%s-results' % cmdl.label
     env = gym.make(env_name)
     env = Monitor(env, directory=outdir, force=True, video_callable=False)
-    env.seed(seed)
+    env.seed(cmdl.seed)
     return env
 
 

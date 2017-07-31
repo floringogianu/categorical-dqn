@@ -1,6 +1,6 @@
 # Example config file
 
-label: "CategoricalDQN"
+label: "DQN"
 env_class: catch
 env_name: "Catcher-Level0-v0"
 estimator: &estimator catch
@@ -8,11 +8,12 @@ hidden_size: &hidden_size 128
 seed: 23
 cuda: &cuda true
 profiling: no
-report_freq: &report_freq 500
+report_freq: &report_freq 12000 # steps
+eval_freq: &eval_freq 12000 # steps
 
 training:
-  step_no: &step_no 1200000 # 2512000
-  batch_size: &batch_size 96
+  step_no: &step_no 600000 # 2512000
+  batch_size: &batch_size 96 # even better with 96
   update_freq: &update_freq 4
   target_update_freq: &target_update_freq 24
   lr: &lr .000635
@@ -36,9 +37,8 @@ agent:
   hidden_size: *hidden_size
 
 evaluator:
-  eval_steps: 2400
-  eval_eps: 1000
-  eval_interval: 100000
+  eval_steps: 12000
+  eval_freq: *eval_freq
   eval_start: 100000
   estimator: *estimator
   cuda: *cuda
