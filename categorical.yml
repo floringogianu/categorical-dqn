@@ -89,5 +89,6 @@ dependencies:
   - pyyaml==3.12
   - torch==0.1.12.post2
   - urllib3==1.21.1
+  - visdom
 prefix: /home/florin/Tools/anaconda3/envs/atari
 
