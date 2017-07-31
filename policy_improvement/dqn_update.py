@@ -50,7 +50,6 @@ class DQNPolicyImprovement(object):
 
         # Compute Huber loss
         loss = F.smooth_l1_loss(q_values, expected_q_values)
-        loss.data.clamp(-1, 1)
 
         # Accumulate gradients
         loss.backward()
@@ -64,22 +63,21 @@ class DQNPolicyImprovement(object):
         self.target_policy.load_state_dict(self.policy.state_dict())
 
     def get_model_stats(self):
-        if self.grads_decoupled:
-            param_abs_mean = 0
-            grad_abs_mean = 0
-            t_param_abs_mean = 0
-            n_params = 0
-            for p in self.policy.parameters():
-                param_abs_mean += p.data.abs().sum()
-                grad_abs_mean += p.grad.data.abs().sum()
-                n_params += p.data.nelement()
-            for t in self.target_policy.parameters():
-                t_param_abs_mean += t.data.abs().sum()
+        param_abs_mean = 0
+        grad_abs_mean = 0
+        t_param_abs_mean = 0
+        n_params = 0
+        for p in self.policy.parameters():
+            param_abs_mean += p.data.abs().sum()
+            grad_abs_mean += p.grad.data.abs().sum()
+            n_params += p.data.nelement()
+        for t in self.target_policy.parameters():
+            t_param_abs_mean += t.data.abs().sum()
 
-            print("Wm: %.9f | Gm: %.9f | Tm: %.9f" % (
-                param_abs_mean / n_params,
-                grad_abs_mean / n_params,
-                t_param_abs_mean / n_params))
+        print("Wm: %.9f | Gm: %.9f | Tm: %.9f" % (
+            param_abs_mean / n_params,
+            grad_abs_mean / n_params,
+            t_param_abs_mean / n_params))
 
     def _debug_transitions(self, mask, reward_batch):
         if mask[0] == 0:
