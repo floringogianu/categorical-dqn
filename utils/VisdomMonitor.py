@@ -2,6 +2,7 @@ import logging
 from gym import Wrapper
 from visdom import Visdom
 import numpy as np
+from termcolor import colored as clr
 
 logger = logging.getLogger(__name__)
 
@@ -11,14 +12,16 @@ class VisdomMonitor(Wrapper):
         super(VisdomMonitor, self).__init__(env)
 
         self.freq = cmdl.report_freq  # in steps
+        self.cmdl = cmdl
 
-        self.vis = Visdom()
-        self.plot = self.vis.line(
-            Y=np.array([0]), X=np.array([0]),
-            opts=dict(
-                title=cmdl.label,
-                caption="Episodic reward per 1200 steps.")
-        )
+        if self.cmdl.display_plots:
+            self.vis = Visdom()
+            self.plot = self.vis.line(
+                Y=np.array([0]), X=np.array([0]),
+                opts=dict(
+                    title=cmdl.label,
+                    caption="Episodic reward per 1200 steps.")
+            )
 
         self.step_cnt = 0
         self.ep_cnt = -1
@@ -55,12 +58,13 @@ class VisdomMonitor(Wrapper):
         # print(self.last_reported_ep, self.ep_cnt + 1)
         completed_eps = self.ep_rw[self.last_reported_ep:self.ep_cnt + 1]
         ep_mean_reward = sum(completed_eps) / len(completed_eps)
-        self.vis.line(
-            X=np.array([self.step_cnt]),
-            Y=np.array([ep_mean_reward]),
-            win=self.plot,
-            update='append'
-        )
+        if self.cmdl.display_plots:
+            self.vis.line(
+                X=np.array([self.step_cnt]),
+                Y=np.array([ep_mean_reward]),
+                win=self.plot,
+                update='append'
+            )
         self.last_reported_ep = self.ep_cnt + 1
 
 
@@ -70,19 +74,22 @@ class EvaluationMonitor(Wrapper):
 
         self.freq = cmdl.eval_freq  # in steps
         self.eval_steps = cmdl.evaluator.eval_steps
+        self.cmdl = cmdl
 
-        self.vis = Visdom()
-        self.plot = self.vis.line(
-            Y=np.array([0]), X=np.array([0]),
-            opts=dict(
-                title=cmdl.label,
-                caption="Episodic reward per 1200 steps.")
-        )
+        if self.cmdl.display_plots:
+            self.vis = Visdom()
+            self.plot = self.vis.line(
+                Y=np.array([0]), X=np.array([0]),
+                opts=dict(
+                    title=cmdl.label,
+                    caption="Episodic reward per %d steps." % self.eval_steps)
+            )
 
         self.crt_step = 0
         self.step_cnt = 0
         self.ep_cnt = 0
         self.total_rw = 0
+        self.max_mean_rw = -100
 
     def get_crt_step(self, crt_step):
         self.crt_step = crt_step
@@ -114,13 +121,22 @@ class EvaluationMonitor(Wrapper):
         # print("[%2d][%4d]  RESET" % (self.ep_cnt, self.step_cnt))
 
     def _update_plot(self):
-        ep_mean_reward = self.total_rw / self.ep_cnt
-        self.vis.line(
-            X=np.array([self.crt_step]),
-            Y=np.array([ep_mean_reward]),
-            win=self.plot,
-            update='append'
-        )
+        mean_rw = self.total_rw / self.ep_cnt
+        max_mean_rw = self.max_mean_rw
+        bg_color = 'on_blue'
+        bg_color = 'on_magenta' if mean_rw > max_mean_rw else bg_color
+        self.max_mean_rw = mean_rw if mean_rw > max_mean_rw else max_mean_rw
+
+        if self.cmdl.display_plots:
+            self.vis.line(
+                X=np.array([self.crt_step]),
+                Y=np.array([mean_rw]),
+                win=self.plot,
+                update='append'
+            )
+        print(clr("[Evaluator] done in %5d steps. " % self.step_cnt,
+              'grey', 'on_white')
+              + clr(" rw/ep=%3.2f " % mean_rw, 'white', bg_color))
 
 
 if __name__ == "__main__":

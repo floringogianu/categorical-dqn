@@ -10,6 +10,7 @@ cuda: &cuda yes
 profiling: no
 report_freq: &report_freq 12000 # steps
 eval_freq: &eval_freq 12000 # steps
+display_plots: true # false for not using visdom
 
 training:
   step_no: &step_no 600000 # 2512000

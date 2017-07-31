@@ -69,7 +69,6 @@ def evaluate_agent(crt_training_step, eval_env, eval_agent, policy, cmdl):
         step_cnt += 1
         if done:
             o, r, done = eval_env.reset(), 0, False
-    print("[Evaluator]  Done after %d evaluation steps." % step_cnt)
 
 
 if __name__ == "__main__":

@@ -8,10 +8,12 @@ hidden_size: &hidden_size 128
 seed: 23
 cuda: &cuda yes
 profiling: no
-report_freq: &report_freq 500 # episodes
+report_freq: &report_freq 12000 # steps
+eval_freq: &eval_freq 12000 # steps
+display_plots: true # false for not using visdom
 
 training:
-  step_no: &step_no 1200000 # 2512000
+  step_no: &step_no 600000 # 2512000
   batch_size: &batch_size 32
   update_freq: &update_freq 4
   target_update_freq: &target_update_freq 24
@@ -23,8 +25,8 @@ agent:
   report_freq: *report_freq
   rescale: no # where required
   epsilon: 1
-  epsilon_steps: 50000
-  experience_replay: 32000
+  epsilon_steps: 100000
+  experience_replay: 100000
   cuda: *cuda
   estimator: *estimator
   update_freq: *update_freq
@@ -40,9 +42,8 @@ agent:
   v_max: 3
 
 evaluator:
-  eval_steps: 2400
-  eval_eps: 1000
-  eval_interval: 100000
+  eval_steps: 12000
+  eval_freq: *eval_freq
   eval_start: 100000
   estimator: *estimator
   cuda: *cuda

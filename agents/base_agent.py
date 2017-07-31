@@ -47,17 +47,10 @@ class BaseAgent(object):
         print("-----------------------------")
 
     def display_stats(self, start_time):
-        mean_rw = torch.FloatTensor([self.ep_reward]).mean()
         fps = self.step_cnt / (time.time() - start_time)
 
-        max_mean_rw = self.max_mean_rw
-        bg_color = 'on_blue'
-        bg_color = 'on_magenta' if mean_rw > max_mean_rw else bg_color
-        self.max_mean_rw = mean_rw if mean_rw > max_mean_rw else max_mean_rw
-
         print(clr("[%s] step=%7d, fps=%.2f " % (self.name, self.step_cnt, fps),
-                  'grey', 'on_white')
-              + clr(" rw/ep=%3.2f " % mean_rw, 'white', bg_color))
+                  'grey', 'on_white'))
         self.ep_reward.clear()
 
     def display_final_report(self, ep_cnt, step_cnt, elapsed_time):
