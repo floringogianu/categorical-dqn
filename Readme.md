@@ -26,9 +26,9 @@ Install `visdom` for reporting: `pip install visdom`.
 
 First start the `visdom` server: `python -m visdom.server`. If you don't want to install or use `visdom` make sure you deactivate the `display_plots` option in the `configs`.
 
-Train the Categorical DQN with `python main.py -cf catch_categorical`.
+Train the Categorical DQN with `python main.py -cf configs/catch_categorical.yaml`.
 
-Train a DQN baseline with `python main.py -cf catch_dqn`.
+Train a DQN baseline with `python main.py -cf configs/catch_dqn.yaml`.
 
 ## To Do
 

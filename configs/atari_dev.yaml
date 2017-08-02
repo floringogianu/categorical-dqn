@@ -1,48 +1,47 @@
 # Example config file
 
+# env info
 label: "CategoricalDQN"
-env_name: "Seaquest-v0"
+env_name: "Breakout-v0"
 env_class: atari
-estimator: &estimator atari
-hidden_size: &hidden_size 512
+
+# agent info
+agent_type: "dqn"
+rescale: 84
+
+# experiment settings
 seed: 23
-cuda: &cuda yes
+cuda: yes
+display_plots: no # uses vizdom for plotting
 profiling: no
-report_freq: &report_freq 10 # episodes
 
-training:
-  step_no: &step_no 40000000 # 2512000
-  batch_size: &batch_size 32
-  update_freq: &update_freq 4
-  target_update_freq: &target_update_freq 24
-  lr: &lr .000235
-  gamma: &gamma 0.99
+# training settings
+training_steps: 80000000
 
-agent:
-  name: "categorical"
-  report_freq: *report_freq
-  rescale: 84
-  epsilon: 1
-  epsilon_steps: 1000000
-  experience_replay: 1000000
-  cuda: *cuda
-  estimator: *estimator
-  update_freq: *update_freq
-  target_update_freq: *target_update_freq
-  batch_size: *batch_size
-  lr: *lr
-  gamma: *gamma
-  hist_len: 1
-  hidden_size: *hidden_size
-  # Specific to CategoricalDQN
-  atoms_no: 51
-  v_min: -10
-  v_max: 10
+# estimator settings
+estimator: atari
+batch_size: 64
+hidden_size: 128
+hist_len: 1
 
-evaluator:
-  eval_steps: 2400
-  eval_eps: 1000
-  eval_interval: 100000
-  eval_start: 100000
-  estimator: *estimator
-  cuda: *cuda
+# exploration, q-learning, optimization settings
+epsilon: 1
+epsilon_steps: 1000000
+experience_replay: 1000000
+update_freq: 4
+target_update_freq: 40000
+lr: .000235
+gamma: 0.99
+
+# support settings
+atoms_no: 51
+v_min: -10
+v_max: 10
+
+# evaluator
+eval_steps: 150000
+eval_frequency: 250000
+eval_start: 100000
+
+# reporting
+report_frequency: 50000 # steps

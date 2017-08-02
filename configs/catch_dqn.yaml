@@ -1,45 +1,39 @@
 # Example config file
 
+# env info
 label: "DQN"
-env_class: catch
 env_name: "Catcher-Level0-v0"
-estimator: &estimator catch
-hidden_size: &hidden_size 128
+env_class: catch
+
+# agent info
+agent_type: "dqn"
+
+# experiment settings
 seed: 23
-cuda: &cuda true
+cuda: yes
+display_plots: yes # uses vizdom for plotting
 profiling: no
-report_freq: &report_freq 12000 # steps
-eval_freq: &eval_freq 12000 # steps
-display_plots: true # false for not using visdom
 
-training:
-  step_no: &step_no 600000 # 2512000
-  batch_size: &batch_size 64 # even better with 96
-  update_freq: &update_freq 4
-  target_update_freq: &target_update_freq 24
-  lr: &lr .000635
-  gamma: &gamma 0.99
+# training vars
+training_steps: 1000000 # 2512000
+# estimator settings
+estimator: catch
+batch_size: 64
+hidden_size: 128
+hist_len: 1
+# exploration, q-learning, optimization settings
+epsilon: 1
+epsilon_steps: 100000
+experience_replay: 100000
+update_freq: 4
+target_update_freq: 24
+lr: .000635
+gamma: 0.99
 
-agent:
-  name: "dqn"
-  report_freq: *report_freq
-  rescale: no # where required
-  epsilon: 1
-  epsilon_steps: 100000
-  experience_replay: 100000
-  cuda: *cuda
-  estimator: *estimator
-  update_freq: *update_freq
-  target_update_freq: *target_update_freq
-  batch_size: *batch_size
-  lr: *lr
-  gamma: *gamma
-  hist_len: 1
-  hidden_size: *hidden_size
+# evaluator
+eval_steps: 12000
+eval_frequency: 12000
+eval_start: 0
 
-evaluator:
-  eval_steps: 12000
-  eval_freq: *eval_freq
-  eval_start: 100000
-  estimator: *estimator
-  cuda: *cuda
+# reporting
+report_frequency: 36000 # steps

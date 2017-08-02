@@ -1,4 +1,3 @@
-import torch
 import time
 from termcolor import colored as clr
 from utils import not_implemented
@@ -39,18 +38,18 @@ class BaseAgent(object):
         print("Agent        : %s" % self.name)
         print("Seed         : %d" % config.seed)
         print("--------- Training ----------")
-        print("Hidden Size  : %d" % config.agent.hidden_size)
-        print("Batch        : %d" % config.agent.batch_size)
-        print("Slow Lr      : %.6f" % config.agent.lr)
+        print("Hidden Size  : %d" % config.hidden_size)
+        print("Batch        : %d" % config.batch_size)
+        print("Slow Lr      : %.6f" % config.lr)
         print("-----------------------------")
         print("stp, nst, act  |  return")
         print("-----------------------------")
 
     def display_stats(self, start_time):
-        fps = self.step_cnt / (time.time() - start_time)
+        fps = self.cmdl.report_frequency / (time.perf_counter() - start_time)
 
         print(clr("[%s] step=%7d, fps=%.2f " % (self.name, self.step_cnt, fps),
-                  'grey', 'on_white'))
+                  attrs=['bold']))
         self.ep_reward.clear()
 
     def display_final_report(self, ep_cnt, step_cnt, elapsed_time):

@@ -72,8 +72,8 @@ class EvaluationMonitor(Wrapper):
     def __init__(self, env, cmdl):
         super(EvaluationMonitor, self).__init__(env)
 
-        self.freq = cmdl.eval_freq  # in steps
-        self.eval_steps = cmdl.evaluator.eval_steps
+        self.freq = cmdl.eval_frequency  # in steps
+        self.eval_steps = cmdl.eval_steps
         self.cmdl = cmdl
 
         if self.cmdl.display_plots:
@@ -135,8 +135,9 @@ class EvaluationMonitor(Wrapper):
                 update='append'
             )
         print(clr("[Evaluator] done in %5d steps. " % self.step_cnt,
-              'grey', 'on_white')
-              + clr(" rw/ep=%3.2f " % mean_rw, 'white', bg_color))
+              attrs=['bold'])
+              + clr(" rw/ep=%3.2f " % mean_rw, 'white', bg_color,
+                    attrs=['bold']))
 
 
 if __name__ == "__main__":

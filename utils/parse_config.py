@@ -8,8 +8,19 @@ def parse_cmd_args():
     """ Return parsed command line arguments.
     """
     p = argparse.ArgumentParser(description='')
-    p.add_argument('-cf', '--config_file', type=str, default="dev",
-                   metavar='config_file_name::str', help='Config file name.')
+    p.add_argument('-l', '--label', type=str, default="default_label",
+                   metavar='label_name::str',
+                   help='Label of the current experiment')
+    p.add_argument('-id', '--id', type=int, default=0,
+                   metavar='label_name::str',
+                   help='Id of this instance running within the current' +
+                        'experiment')
+    p.add_argument('-cf', '--config', type=str, default="catch_dev",
+                   metavar='path::str',
+                   help='Path to the config file.')
+    p.add_argument('-r', '--results', type=str, default="./results",
+                   metavar='path::str',
+                   help='Path of the results folder.')
     args = p.parse_args()
     return args
 
@@ -24,8 +35,7 @@ def to_namespace(d):
 
 
 def parse_config_file(args):
-    config_path = "./configs/%s.yaml" % args.config_file
-    f = open(config_path)
+    f = open(args.config)
     config_data = yaml.load(f, Loader=yaml.SafeLoader)
     f.close()
     return to_namespace(config_data)
