@@ -1,12 +1,12 @@
 # Example config file
 
 # env info
-label: "CategoricalDQN"
+label: "Atari Dev"
 env_name: "Breakout-v0"
 env_class: atari
 
 # agent info
-agent_type: "dqn"
+agent_type: "categorical"
 rescale: 84
 
 # experiment settings
@@ -20,8 +20,8 @@ training_steps: 80000000
 
 # estimator settings
 estimator: atari
-batch_size: 64
 hidden_size: 128
+batch_size: 64
 hist_len: 1
 
 # exploration, q-learning, optimization settings

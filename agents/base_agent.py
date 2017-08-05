@@ -34,16 +34,23 @@ class BaseAgent(object):
             self.ep_reward_cnt = 0
 
     def display_setup(self, env, config):
-        print("----------------------------")
-        print("Agent        : %s" % self.name)
-        print("Seed         : %d" % config.seed)
-        print("--------- Training ----------")
-        print("Hidden Size  : %d" % config.hidden_size)
-        print("Batch        : %d" % config.batch_size)
-        print("Slow Lr      : %.6f" % config.lr)
-        print("-----------------------------")
-        print("stp, nst, act  |  return")
-        print("-----------------------------")
+        emph = ["env_name", "agent_type", "label", "batch_size", "lr"]
+        print("-------------------------------------------------")
+        for k in config.__dict__:
+            if config.__dict__[k] is not None:
+                v = config.__dict__[k]
+                space = "." * (32 - len(k))
+                config_line = "%s:  %s  %s" % (k, space, v)
+                for e in emph:
+                    if k == e:
+                        config_line = clr(config_line, attrs=['bold'])
+                print(config_line)
+        print("-------------------------------------------------")
+        custom = {"no_of_actions": self.action_no}
+        for k, v in custom.items():
+            space = "." * (32 - len(k))
+            print("%s:  %s  %s" % (k, space, v))
+        print("-------------------------------------------------")
 
     def display_stats(self, start_time):
         fps = self.cmdl.report_frequency / (time.perf_counter() - start_time)

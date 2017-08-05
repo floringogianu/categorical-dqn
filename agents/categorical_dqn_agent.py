@@ -43,20 +43,6 @@ class CategoricalDQNAgent(DQNAgent):
         if self.step_cnt % self.cmdl.target_update_freq == 0:
             self.policy_improvement.update_target_net()
 
-    def display_setup(self, env, c):
-        print("----------------------------")
-        print("Agent        : %s" % self.name)
-        print("Seed         : %d" % c.seed)
-        print("--------- Training ----------")
-        print("Hidden Size  : %d" % c.hidden_size)
-        print("Batch        : %d" % c.batch_size)
-        print("Learning Rate: %.6f" % c.lr)
-        print("Atoms No     : %.2d" % c.atoms_no)
-        print("Support      : (%.2f, %.2f)" % (c.v_min, c.v_max))
-        print("----------- Other -----------")
-        print("Action No    : %d" % self.action_no)
-        print("-----------------------------")
-
     def display_model_stats(self):
         self.policy_improvement.get_model_stats()
         print("MaxQ=%2.2f.  MemSz=%5d.  Epsilon=%.2f." % (
