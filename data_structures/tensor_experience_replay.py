@@ -1,4 +1,3 @@
-import time
 import torch
 from utils import TorchTypes
 
@@ -19,7 +18,6 @@ class TensorCircularBuffer(object):
         }
         self.full_idx = -1
         print("[Experience Replay]  Done allocating main memory.")
-        time.sleep(10)
 
     def push(self, _s, _a, r, d):
         idx = self.position
