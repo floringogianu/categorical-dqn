@@ -26,16 +26,18 @@ class CategoricalDQNAgent(DQNAgent):
                 policy, target, cmdl)
 
     def improve_policy(self, _s, _a, r, s, done):
-        self.replay_memory.push(_s, _a, s, r, done)
+        h = self.cmdl.hist_len - 1
+        self.replay_memory.push(_s[0, h], _a, r, done)
 
         if len(self.replay_memory) < self.cmdl.batch_size:
             return
 
         if (self.step_cnt % self.cmdl.update_freq == 0) and (
                 len(self.replay_memory) > self.cmdl.batch_size):
+
             # get batch of transitions
-            transitions = self.replay_memory.sample(self.cmdl.batch_size)
-            batch = self._batch2torch(transitions)
+            batch = self.replay_memory.sample()
+
             # compute gradients
             self.policy_improvement.accumulate_gradient(*batch)
             self.policy_improvement.update_model()

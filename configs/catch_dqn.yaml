@@ -1,7 +1,7 @@
-# Example config file
+# Catch DQN config file
 
 # env info
-label: "DQN"
+label: "Catcher DQN"
 env_name: "Catcher-Level0-v0"
 env_class: catch
 
@@ -9,25 +9,25 @@ env_class: catch
 agent_type: "dqn"
 
 # experiment settings
-seed: 23
+seed: 99
 cuda: yes
-display_plots: yes # uses vizdom for plotting
-profiling: no
+display_plots: no # uses vizdom for plotting
 
 # training vars
-training_steps: 1000000 # 2512000
+training_steps: 1000000
 # estimator settings
 estimator: catch
 batch_size: 64
 hidden_size: 128
-hist_len: 1
+hist_len: 2
 # exploration, q-learning, optimization settings
 epsilon: 1
 epsilon_steps: 100000
-experience_replay: 100000
-update_freq: 4
+experience_replay: nTupleExperienceReplay
+replay_mem_size: 100000
+update_freq: 2
 target_update_freq: 24
-lr: .000635
+lr: .000635  # decrease to 0.000135 for hist_len 4
 gamma: 0.99
 
 # evaluator
@@ -36,4 +36,4 @@ eval_frequency: 12000
 eval_start: 0
 
 # reporting
-report_frequency: 36000 # steps
+report_frequency: 12000 # steps

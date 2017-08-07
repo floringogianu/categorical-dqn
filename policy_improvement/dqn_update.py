@@ -5,7 +5,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import torch.optim as optim
 from termcolor import colored as clr
-
+from utils import TorchTypes
 
 class DQNPolicyImprovement(object):
     """ Deep Q-Learning training method. """
@@ -20,6 +20,7 @@ class DQNPolicyImprovement(object):
         self.optimizer = optim.Adam(self.policy.parameters(), lr=self.lr)
         self.optimizer.zero_grad()
         self.grads_decoupled = False
+        self.dtype = TorchTypes(cmdl.cuda)
 
     def accumulate_gradient(self, batch_sz, states, actions, rewards,
                             next_states, mask):
@@ -33,18 +34,13 @@ class DQNPolicyImprovement(object):
 
         # Compute Q(s, a)
         q_values = self.policy(states)
-        q_values = q_values.gather(1, actions.unsqueeze(1))
+        q_values = q_values.gather(1, actions)
 
         # Compute Q(s_, a)
-        q_target_values = None
-        if next_states.is_cuda:
-            q_target_values = Variable(torch.zeros(batch_sz).cuda())
-        else:
-            q_target_values = Variable(torch.zeros(batch_sz))
+        q_target_values = Variable(torch.zeros(batch_sz).type(self.dtype.FT))
 
         # Bootstrap for non-terminal states
         q_target_values[mask] = self.target_policy(next_states).max(1)[0][mask]
-
         q_target_values.volatile = False      # So we don't mess the huber loss
         expected_q_values = (q_target_values * self.gamma) + rewards
 
@@ -80,29 +76,36 @@ class DQNPolicyImprovement(object):
             t_param_abs_mean / n_params))
 
     def _debug_transitions(self, mask, reward_batch):
-        if mask[0] == 0:
-            r = reward_batch[0, 0]
+        if mask[0, 0] == 0:
+            r = reward_batch.data[0, 0]
             if r == 1.0:
                 print(r)
 
-    def _debug_states(self, state_batch, next_state_batch, mask):
-        for i in range(24):
-            for j in range(24):
-                px = state_batch[0, 0, i, j]
-                if px < 0.90:
-                    print(clr("%.2f  " % px, 'magenta'), end="")
-                else:
-                    print(("%.2f  " % px), end="")
+    def _debug_states(self, state_batch, next_state_batch, mask, target):
+        batch_idx = 23
+        for k in range(state_batch.size(1)):
+            for i in range(24):
+                for j in range(24):
+                    px = state_batch[batch_idx, k, i, j]
+                    if px < 0.90:
+                        print(clr("%.2f  " % px, 'magenta'), end="")
+                    else:
+                        print(("%.2f  " % px), end="")
+                print()
             print()
-        for i in range(24):
-            for j in range(24):
-                px = next_state_batch[0, 0, i, j]
-                if px < 0.90:
-                    print(clr("%.2f  " % px, 'magenta'), end="")
-                else:
-                    print(clr("%.2f  " % px, 'white'), end="")
+        print("************ NEXT STATE *********************")
+        for v in range(next_state_batch.size(1)):
+            for i in range(24):
+                for j in range(24):
+                    px = next_state_batch[batch_idx, v, i, j]
+                    if px < 0.90:
+                        print(clr("%.2f  " % px, 'magenta'), end="")
+                    else:
+                        print(clr("%.2f  " % px, 'white'), end="")
+                print()
             print()
-        if mask[0] == 0:
+        if mask[batch_idx, 0] == 0:
             print(clr("Done batch ............", 'magenta'))
+            print(target[batch_idx])
         else:
             print(".......................")

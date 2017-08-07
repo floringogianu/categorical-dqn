@@ -4,9 +4,10 @@ from utils import not_implemented
 
 
 class BaseAgent(object):
-    def __init__(self, action_space, is_training):
-        self.actions = action_space
+    def __init__(self, env_space, is_training):
+        self.actions = env_space[0]
         self.action_no = self.actions.n
+        self.state_dims = env_space[1].shape[0:2]
 
         self.is_training = is_training
         self.step_cnt = 0
@@ -34,7 +35,8 @@ class BaseAgent(object):
             self.ep_reward_cnt = 0
 
     def display_setup(self, env, config):
-        emph = ["env_name", "agent_type", "label", "batch_size", "lr"]
+        emph = ["env_name", "agent_type", "label", "batch_size", "lr",
+                "hist_len"]
         print("-------------------------------------------------")
         for k in config.__dict__:
             if config.__dict__[k] is not None:
@@ -59,12 +61,13 @@ class BaseAgent(object):
                   attrs=['bold']))
         self.ep_reward.clear()
 
-    def display_final_report(self, ep_cnt, step_cnt, elapsed_time):
+    def display_final_report(self, ep_cnt, step_cnt, global_time):
+        elapsed_time = time.perf_counter() - global_time
         fps = step_cnt / elapsed_time
-        print(clr("[  %s   ] finished after %d eps, %d steps."
-              % ("Main", ep_cnt, step_cnt), 'white', 'on_magenta'))
-        print(clr("[  %s   ] finished after %.2fs, %.2ffps."
-              % ("Main", elapsed_time, fps), 'white', 'on_magenta'))
+        print(clr("[  %s   ] finished after %d eps, %d steps.  "
+              % ("Main", ep_cnt, step_cnt), 'white', 'on_grey'))
+        print(clr("[  %s   ] finished after %.2fs, %.2ffps.   "
+              % ("Main", elapsed_time, fps), 'white', 'on_grey'))
 
     def display_model_stats(self):
         pass

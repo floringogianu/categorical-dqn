@@ -1,5 +1,5 @@
 from termcolor import colored as clr
-from utils.monitors import VisdomMonitor
+from utils import VisdomMonitor
 
 
 def get_new_env(env_name, cmdl):

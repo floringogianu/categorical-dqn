@@ -3,37 +3,50 @@ import gym, gym_fast_envs  # noqa
 import torch, numpy  # noqa
 
 import utils
-from utils import Preprocessor
+# from utils import Preprocessor
 from utils import EvaluationMonitor
+from utils import PreprocessFrames
+from utils import SqueezeRewards
 from agents import get_agent
 
 
 def train_agent(cmdl):
     step_cnt = 0
     ep_cnt = 0
+
+    global_time = time.perf_counter()
     start_time = time.perf_counter()
 
-    env = utils.get_new_env(cmdl.env_name, cmdl)
-    eval_env = EvaluationMonitor(gym.make(cmdl.env_name), cmdl)
+    # env = utils.get_new_env(cmdl.env_name, cmdl)
+    if hasattr(cmdl, 'rescale_dims'):
+        state_dims = (cmdl.rescale_dims, cmdl.rescale_dims)
+    else:
+        state_dims = gym.make(cmdl.env_name).observation_space.shape[0:2]
+
+    env = PreprocessFrames(
+        gym.make(cmdl.env_name), cmdl.env_class, cmdl.hist_len, state_dims)
+    env = SqueezeRewards(env)
+    eval_env = PreprocessFrames(
+        gym.make(cmdl.env_name), cmdl.env_class, cmdl.hist_len, state_dims)
+    eval_env = EvaluationMonitor(eval_env, cmdl)
 
     name = cmdl.agent_type
-    agent = get_agent(name)(env.action_space, cmdl)
-    eval_agent = get_agent(name)(eval_env.action_space, cmdl, False)
+    env_space = (env.action_space, env.observation_space)
+    agent = get_agent(name)(env_space, cmdl)
+    eval_env_space = (env.action_space, env.observation_space)
+    eval_agent = get_agent("evaluation")(eval_env_space, cmdl)
 
-    preprocess = Preprocessor(cmdl.env_class).transform
     agent.display_setup(env, cmdl)
 
     while step_cnt < cmdl.training_steps:
 
         ep_cnt += 1
-        o, r, done = env.reset(), 0, False
-        s = preprocess(o)
+        s, r, done = env.reset(), 0, False
 
         while not done:
             a = agent.evaluate_policy(s)
-            o, r, done, _ = env.step(a)
-            _s, _a = s, a
-            s = preprocess(o)
+            _s, _a = s.clone(), a
+            s, r, done, _ = env.step(a)
             agent.improve_policy(_s, _a, r, s, done)
 
             step_cnt += 1
@@ -55,8 +68,7 @@ def train_agent(cmdl):
                 gc.collect()
                 start_time = start_time + (time.perf_counter() - eval_time)
 
-    end_time = time.perf_counter()
-    agent.display_final_report(ep_cnt, step_cnt, end_time - start_time)
+    agent.display_final_report(ep_cnt, step_cnt, global_time)
 
 
 def evaluate_agent(crt_training_step, eval_env, eval_agent, policy, cmdl):
@@ -64,18 +76,17 @@ def evaluate_agent(crt_training_step, eval_env, eval_agent, policy, cmdl):
     agent = eval_agent
 
     eval_env.get_crt_step(crt_training_step)
+    # need to change this
     agent.policy_evaluation.policy.load_state_dict(policy.state_dict())
-    preprocess = Preprocessor(cmdl.env_class).transform
 
     step_cnt = 0
-    o, r, done = eval_env.reset(), 0, False
+    s, r, done = eval_env.reset(), 0, False
     while step_cnt < cmdl.eval_steps:
-        s = preprocess(o)
         a = agent.evaluate_policy(s)
-        o, r, done, _ = eval_env.step(a)
+        s, r, done, _ = eval_env.step(a)
         step_cnt += 1
         if done:
-            o, r, done = eval_env.reset(), 0, False
+            s, r, done = eval_env.reset(), 0, False
 
 
 if __name__ == "__main__":

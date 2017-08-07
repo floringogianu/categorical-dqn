@@ -7,9 +7,15 @@ class DeterministicPolicy(object):
 
         self.name = "DP"
         self.policy = policy
+        self.cuda = next(policy.parameters()).is_cuda
 
-    def get_action(self, state_batch):
+    def get_action(self, state):
         """ Takes best action based on estimated state-action values."""
+        state = state.cuda() if self.cuda else state
         q_val, argmax_a = self.policy(
-                Variable(state_batch, volatile=True)).data.max(1)
+                Variable(state, volatile=True)).data.max(1)
+        """
+        result = self.policy(Variable(state_batch, volatile=True))
+        print(result)
+        """
         return (q_val[0, 0], argmax_a[0, 0])

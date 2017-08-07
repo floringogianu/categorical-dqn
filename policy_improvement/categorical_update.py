@@ -27,9 +27,9 @@ class CategoricalPolicyImprovement(object):
         self.v_min, self.v_max = v_min, v_max = cmdl.v_min, cmdl.v_max
         self.atoms_no = atoms_no = cmdl.atoms_no
         self.support = torch.linspace(v_min, v_max, atoms_no)
-
-        self.support = self.support.type(dtype.FloatTensor)
+        self.support = self.support.type(dtype.FT)
         self.delta_z = (cmdl.v_max - cmdl.v_min) / (cmdl.atoms_no - 1)
+        self.m = torch.zeros(cmdl.batch_size, self.atoms_no).type(dtype.FT)
 
     def accumulate_gradient(self, batch_sz, states, actions, rewards,
                             next_states, mask):
@@ -38,7 +38,6 @@ class CategoricalPolicyImprovement(object):
         """
         states = Variable(states)
         actions = Variable(actions)
-        rewards = Variable(rewards)
         next_states = Variable(next_states, volatile=True)
 
         # Compute probabilities of Q(s,a*)
@@ -64,28 +63,27 @@ class CategoricalPolicyImprovement(object):
     def _get_categorical(self, next_states, rewards, mask):
         batch_sz = next_states.size(0)
         gamma = self.gamma
-        rewards = rewards.data
 
         # Compute probabilities p(x, a)
         probs = self.target_policy(next_states).data
-        argmax_a = torch.mul(
-            probs, self.support.expand_as(probs)).sum(2).max(1)[1].squeeze(1)
+        qs = torch.mul(probs, self.support.expand_as(probs))
+        argmax_a = qs.sum(2).max(1)[1].squeeze(1)
         action_mask = argmax_a.unsqueeze(2).expand(batch_sz, 1, self.atoms_no)
         qa_probs = probs.gather(1, action_mask).squeeze()
 
         # Mask gamma and reshape it torgether with rewards to fit p(x,a).
-        rewards = rewards.unsqueeze(1).expand_as(qa_probs)
-        gamma = (mask.float() * gamma).unsqueeze(1).expand_as(qa_probs)
+        rewards = rewards.expand_as(qa_probs)
+        gamma = (mask.float() * gamma).expand_as(qa_probs)
 
         # Compute projection of the application of the Bellman operator.
         bellman_op = rewards + gamma * self.support.unsqueeze(0).expand_as(rewards)
         bellman_op = torch.clamp(bellman_op, self.v_min, self.v_max)
 
         # Compute categorical indices for distributing the probability
-        m = torch.zeros(batch_sz, self.atoms_no).type(self.dtype.FloatTensor)
+        m = self.m.fill_(0)
         b = (bellman_op - self.v_min) / self.delta_z
-        l = b.floor().type(self.dtype.LongTensor)
-        u = b.ceil().type(self.dtype.LongTensor)
+        l = b.floor().long()
+        u = b.ceil().long()
 
         # Distribute probability
         """
@@ -102,14 +100,14 @@ class CategoricalPolicyImprovement(object):
         """
         # Optimized by https://github.com/tudor-berariu
         offset = torch.linspace(0, ((batch_sz - 1) * self.atoms_no), batch_sz)\
-            .type(self.dtype.LongTensor)\
+            .type(self.dtype.LT)\
             .unsqueeze(1).expand(batch_sz, self.atoms_no)
 
         m.view(-1).index_add_(0, (l + offset).view(-1),
                               (qa_probs * (u.float() - b)).view(-1))
         m.view(-1).index_add_(0, (u + offset).view(-1),
                               (qa_probs * (b - l.float())).view(-1))
-        return Variable(m.type(self.dtype.FloatTensor))
+        return Variable(m)
 
     def update_target_net(self):
         """ Update the target net with the parameters in the online model."""

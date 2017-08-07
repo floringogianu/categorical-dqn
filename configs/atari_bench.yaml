@@ -1,7 +1,7 @@
-# Atari Dev configuration file
+# Example config file
 
 # env info
-label: "Atari Dev"
+label: "Atari Benchmark"
 env_name: "Breakout-v0"
 env_class: atari
 
@@ -15,21 +15,21 @@ cuda: yes
 display_plots: no # uses vizdom for plotting
 
 # training settings
-training_steps: 80000000
+training_steps: 30000
 
 # estimator settings
 estimator: atari
 hidden_size: 128
 batch_size: 64
-hist_len: 1
+hist_len: 4
 
 # exploration, q-learning, optimization settings
 epsilon: 1
-epsilon_steps: 1000000
+epsilon_steps: 1000
 experience_replay: nTupleExperienceReplay
-replay_mem_size: 1000000
+replay_mem_size: 100000
 update_freq: 4
-target_update_freq: 40000
+target_update_freq: 10000
 lr: .000235
 gamma: 0.99
 
@@ -39,9 +39,9 @@ v_min: -10
 v_max: 10
 
 # evaluator
-eval_steps: 150000
-eval_frequency: 250000
-eval_start: 100000
+eval_steps: 2000
+eval_frequency: 10000
+eval_start: 5000
 
 # reporting
-report_frequency: 50000 # steps
+report_frequency: 10000 # steps

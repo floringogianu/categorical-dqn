@@ -12,11 +12,12 @@ class CategoricalPolicyEvaluation(object):
 
         self.dtype = dtype = TorchTypes(cmdl.cuda)
         self.support = torch.linspace(cmdl.v_min, cmdl.v_max, cmdl.atoms_no)
-        self.support = self.support.type(dtype.FloatTensor)
+        self.support = self.support.type(dtype.FT)
 
-    def get_action(self, state_batch):
+    def get_action(self, state):
         """ Takes best action based on estimated state-action values."""
-        probs = self.policy(Variable(state_batch, volatile=True)).data
+        state = state.type(self.dtype.FT)
+        probs = self.policy(Variable(state, volatile=True)).data
         support = self.support.expand_as(probs)
         q_val, argmax_a = torch.mul(probs, support).squeeze().sum(1).max(0)
         return (q_val[0, 0], argmax_a[0, 0])
