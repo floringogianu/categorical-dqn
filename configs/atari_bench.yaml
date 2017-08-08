@@ -32,6 +32,8 @@ update_freq: 4
 target_update_freq: 10000
 lr: .000235
 gamma: 0.99
+# clamps
+reward_clamp: yes # [-1, 1]
 
 # support settings
 atoms_no: 51
@@ -42,6 +44,7 @@ v_max: 10
 eval_steps: 2000
 eval_frequency: 10000
 eval_start: 5000
+eval_env_name: "Breakout-v0"  # eg.: deterministic or wo skipping frames
 
 # reporting
 report_frequency: 10000 # steps

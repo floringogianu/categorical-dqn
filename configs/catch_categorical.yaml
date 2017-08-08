@@ -29,6 +29,7 @@ update_freq: 2
 target_update_freq: 24
 lr: .000635  # decrease to 0.000135 for hist_len 4
 gamma: 0.99
+
 # support settings
 atoms_no: 51
 v_min: -3
@@ -38,6 +39,7 @@ v_max: 3
 eval_steps: 12000
 eval_frequency: 12000
 eval_start: 0
+eval_env_name: "Catcher-Level0-v0"  # eg.: deterministic or wo skipping frames
 
 # reporting
 report_frequency: 12000 # steps

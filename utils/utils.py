@@ -1,37 +1,44 @@
+import logging
+import gym
+import gym_fast_envs  # noqa
 from termcolor import colored as clr
-from utils import VisdomMonitor
+
+from utils import EvaluationMonitor
+from utils import PreprocessFrames
+from utils import SqueezeRewards
 
 
-def get_new_env(env_name, cmdl):
-    """Configure the training environment and return an instance."""
-    import logging
-    import gym
-    import gym_fast_envs  # noqa
-    from gym.wrappers import Monitor
-
+def env_factory(cmdl, mode):
     # Undo the default logger and configure a new one.
     gym.undo_logger_setup()
     logger = logging.getLogger()
     logger.setLevel(logging.WARNING)
 
-    # Configure environment
-    outdir = '/tmp/nec/%s-results' % cmdl.label
-    env = gym.make(env_name)
-    env = Monitor(env, directory=outdir, force=True, video_callable=False)
-    env.seed(cmdl.seed)
-    return env
+    print(clr("[Main] Constructing %s environment." % mode, attrs=['bold']))
+    env = gym.make(cmdl.env_name)
 
+    if hasattr(cmdl, 'rescale_dims'):
+        state_dims = (cmdl.rescale_dims, cmdl.rescale_dims)
+    else:
+        state_dims = env.observation_space.shape[0:2]
 
-def get_config_info(env_name):
-    """Utility for configuring the model.
-    Returns types and info necessary for the initial setup.
-    """
-    import gym
-    import gym_fast_envs  # noqa
-    env = gym.make(env_name)
-    o, a = env.observation_space, env.action_space
-    env.close()
-    return o, a
+    if mode == "training":
+        env = PreprocessFrames(env, cmdl.env_class, cmdl.hist_len, state_dims)
+        if hasattr(cmdl, 'reward_clamp') and cmdl.reward_clamp:
+            env = SqueezeRewards(env)
+        print('-' * 50)
+        return env
+
+    elif mode == "evaluation":
+        if cmdl.eval_env_name != cmdl.env_name:
+            print(clr("[%s] Warning! evaluating on a different env: %s"
+                      % ("Main", cmdl.eval_env_name), 'red', attrs=['bold']))
+            env = gym.make(cmdl.eval_env_name)
+
+        env = PreprocessFrames(env, cmdl.env_class, cmdl.hist_len, state_dims)
+        env = EvaluationMonitor(env, cmdl)
+        print('-' * 50)
+        return env
 
 
 def not_implemented(obj):

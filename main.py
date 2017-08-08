@@ -3,10 +3,6 @@ import gym, gym_fast_envs  # noqa
 import torch, numpy  # noqa
 
 import utils
-# from utils import Preprocessor
-from utils import EvaluationMonitor
-from utils import PreprocessFrames
-from utils import SqueezeRewards
 from agents import get_agent
 
 
@@ -17,18 +13,8 @@ def train_agent(cmdl):
     global_time = time.perf_counter()
     start_time = time.perf_counter()
 
-    # env = utils.get_new_env(cmdl.env_name, cmdl)
-    if hasattr(cmdl, 'rescale_dims'):
-        state_dims = (cmdl.rescale_dims, cmdl.rescale_dims)
-    else:
-        state_dims = gym.make(cmdl.env_name).observation_space.shape[0:2]
-
-    env = PreprocessFrames(
-        gym.make(cmdl.env_name), cmdl.env_class, cmdl.hist_len, state_dims)
-    env = SqueezeRewards(env)
-    eval_env = PreprocessFrames(
-        gym.make(cmdl.env_name), cmdl.env_class, cmdl.hist_len, state_dims)
-    eval_env = EvaluationMonitor(eval_env, cmdl)
+    env = utils.env_factory(cmdl, "training")
+    eval_env = utils.env_factory(cmdl, "evaluation")
 
     name = cmdl.agent_type
     env_space = (env.action_space, env.observation_space)
