@@ -11,7 +11,6 @@ def train_agent(cmdl):
     ep_cnt = 0
 
     global_time = time.perf_counter()
-    start_time = time.perf_counter()
 
     env = utils.env_factory(cmdl, "training")
     eval_env = utils.env_factory(cmdl, "evaluation")
@@ -24,6 +23,7 @@ def train_agent(cmdl):
 
     agent.display_setup(env, cmdl)
 
+    fps_time = time.perf_counter()
     while step_cnt < cmdl.training_steps:
 
         ep_cnt += 1
@@ -40,9 +40,9 @@ def train_agent(cmdl):
 
             # Do some reporting
             if step_cnt != 0 and step_cnt % cmdl.report_frequency == 0:
-                agent.display_stats(start_time)
+                agent.display_stats(fps_time)
                 agent.display_model_stats()
-                start_time = time.perf_counter()
+                fps_time = time.perf_counter()
                 gc.collect()
 
             # Start doing an evaluation
@@ -52,7 +52,7 @@ def train_agent(cmdl):
                 evaluate_agent(step_cnt, eval_env, eval_agent,
                                agent.policy, cmdl)
                 gc.collect()
-                start_time = start_time + (time.perf_counter() - eval_time)
+                fps_time = fps_time + (time.perf_counter() - eval_time)
 
     agent.display_final_report(ep_cnt, step_cnt, global_time)
 
