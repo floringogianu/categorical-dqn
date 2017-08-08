@@ -27,8 +27,11 @@ experience_replay: nTupleExperienceReplay
 replay_mem_size: 100000
 update_freq: 2
 target_update_freq: 24
-lr: .000635  # decrease to 0.000135 for hist_len 4
 gamma: 0.99
+optim: Adam
+lr: .000635  # decrease to 0.000135 for hist_len 4
+alpha: 0.95  # RMSprop smoothing constant
+eps: 0.00015  # RMSprop: 0.01 | Adam: 0.01/batch_size
 
 # support settings
 atoms_no: 51

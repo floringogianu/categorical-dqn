@@ -3,9 +3,9 @@
 import torch
 from torch.autograd import Variable
 # import torch.nn.functional as F
-import torch.optim as optim
 from termcolor import colored as clr
 from utils import TorchTypes
+from policy_improvement.optim_utils import optim_factory, lr_schedule
 
 
 class CategoricalPolicyImprovement(object):
@@ -13,15 +13,15 @@ class CategoricalPolicyImprovement(object):
 
     def __init__(self, policy, target_policy, cmdl):
         self.name = "Categorical-PI"
+        self.cmdl = cmdl
         self.policy = policy
         self.target_policy = target_policy
         self.lr = cmdl.lr
         self.gamma = cmdl.gamma
-        self.cmdl = cmdl
 
-        self.optimizer = optim.Adam(self.policy.parameters(), lr=self.lr)
+        self.optimizer = optim_factory(self.policy.parameters(), cmdl)
         self.optimizer.zero_grad()
-        self.grads_decoupled = False
+        self.lr_generator = lr_schedule(cmdl.lr, 0.00001, cmdl.training_steps)
 
         self.dtype = dtype = TorchTypes(cmdl.cuda)
         self.v_min, self.v_max = v_min, v_max = cmdl.v_min, cmdl.v_max
@@ -57,6 +57,10 @@ class CategoricalPolicyImprovement(object):
         loss.backward()
 
     def update_model(self):
+        if self.cmdl.optim == "RMSprop":
+            lr = next(self.lr_generator)
+            for param_group in self.optimizer.param_groups:
+                param_group['lr'] = lr
         self.optimizer.step()
         self.optimizer.zero_grad()
 
