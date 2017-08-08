@@ -4,7 +4,6 @@ import numpy as np
 from gym import Wrapper
 from gym import ObservationWrapper
 from gym import RewardWrapper
-from visdom import Visdom
 from PIL import Image
 from termcolor import colored as clr
 from collections import OrderedDict
@@ -104,6 +103,7 @@ class VisdomMonitor(Wrapper):
         self.cmdl = cmdl
 
         if self.cmdl.display_plots:
+            from visdom import Visdom
             self.vis = Visdom()
             self.plot = self.vis.line(
                 Y=np.array([0]), X=np.array([0]),
@@ -166,6 +166,7 @@ class EvaluationMonitor(Wrapper):
         self.cmdl = cmdl
 
         if self.cmdl.display_plots:
+            import Visdom
             self.vis = Visdom()
             self.plot = self.vis.line(
                 Y=np.array([0]), X=np.array([0]),
