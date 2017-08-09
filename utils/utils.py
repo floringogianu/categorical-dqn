@@ -6,6 +6,7 @@ from termcolor import colored as clr
 from utils import EvaluationMonitor
 from utils import PreprocessFrames
 from utils import SqueezeRewards
+from utils import DoneAfterLostLife
 
 
 def env_factory(cmdl, mode):
@@ -26,6 +27,8 @@ def env_factory(cmdl, mode):
         env = PreprocessFrames(env, cmdl.env_class, cmdl.hist_len, state_dims)
         if hasattr(cmdl, 'reward_clamp') and cmdl.reward_clamp:
             env = SqueezeRewards(env)
+        if hasattr(cmdl, 'done_after_lost_life') and cmdl.done_after_lost_life:
+            env = DoneAfterLostLife(env)
         print('-' * 50)
         return env
 

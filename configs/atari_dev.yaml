@@ -16,6 +16,7 @@ display_plots: no # uses vizdom for plotting
 
 # training settings
 training_steps: 80000000
+done_after_lost_life: yes
 
 # estimator settings
 estimator: atari
