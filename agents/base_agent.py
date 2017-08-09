@@ -4,21 +4,16 @@ from utils import not_implemented
 
 
 class BaseAgent(object):
-    def __init__(self, env_space, is_training):
+    def __init__(self, env_space):
         self.actions = env_space[0]
         self.action_no = self.actions.n
         self.state_dims = env_space[1].shape[0:2]
 
-        self.is_training = is_training
         self.step_cnt = 0
         self.ep_cnt = 0
         self.ep_reward_cnt = 0
         self.ep_reward = []
         self.max_mean_rw = -100
-        if is_training:
-            print("Agent in training mode")
-        else:
-            print("Agent in evaluation mode")
 
     def evaluate_policy(self, obs):
         not_implemented(self)

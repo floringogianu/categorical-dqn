@@ -5,8 +5,8 @@ from policy_improvement import CategoricalPolicyImprovement
 
 
 class CategoricalDQNAgent(DQNAgent):
-    def __init__(self, action_space, cmdl, is_training=True):
-        DQNAgent.__init__(self, action_space, cmdl, is_training)
+    def __init__(self, action_space, cmdl):
+        DQNAgent.__init__(self, action_space, cmdl)
         self.name = "Categorical_agent"
         self.cmdl = cmdl
 

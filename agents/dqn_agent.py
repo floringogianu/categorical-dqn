@@ -9,8 +9,8 @@ from utils import TorchTypes
 
 
 class DQNAgent(BaseAgent):
-    def __init__(self, env_space, cmdl, is_training=True):
-        BaseAgent.__init__(self, env_space, is_training)
+    def __init__(self, env_space, cmdl):
+        BaseAgent.__init__(self, env_space)
         self.name = "DQN_agent"
         self.cmdl = cmdl
         eps = self.cmdl.epsilon
@@ -33,11 +33,7 @@ class DQNAgent(BaseAgent):
         self.max_q = -1000
 
     def evaluate_policy(self, state):
-        if self.is_training:
-            self.epsilon = next(self.exploration)
-        else:
-            self.epsilon = 0.05
-
+        self.epsilon = next(self.exploration)
         if self.epsilon < uniform():
             qval, action = self.policy_evaluation.get_action(state)
             self.max_q = max(qval, self.max_q)
