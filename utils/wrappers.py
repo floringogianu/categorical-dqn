@@ -159,14 +159,23 @@ class EvaluationMonitor(Wrapper):
                     caption="Episodic reward per %d steps." % self.eval_steps)
             )
 
-        self.crt_step = 0
+        self.eval_cnt = 0
+        self.crt_training_step = 0
         self.step_cnt = 0
-        self.ep_cnt = 0
+        self.ep_cnt = 1
         self.total_rw = 0
-        self.max_mean_rw = -100
+        self.max_mean_rw = -1000
 
-    def get_crt_step(self, crt_step):
-        self.crt_step = crt_step
+        no_of_evals = cmdl.training_steps // cmdl.eval_frequency \
+            - (cmdl.eval_start-1) // cmdl.eval_frequency
+
+        self.eval_frame_idx = torch.LongTensor(no_of_evals).fill_(0)
+        self.eval_rw_per_episode = torch.FloatTensor(no_of_evals).fill_(0)
+        self.eval_rw_per_frame = torch.FloatTensor(no_of_evals).fill_(0)
+        self.eval_eps_per_eval = torch.LongTensor(no_of_evals).fill_(0)
+
+    def get_crt_step(self, crt_training_step):
+        self.crt_training_step = crt_training_step
 
     def _reset_monitor(self):
         self.step_cnt, self.ep_cnt, self.total_rw = 0, 0, 0
@@ -185,29 +194,53 @@ class EvaluationMonitor(Wrapper):
     def _after_step(self, o, r, done, info):
         self.total_rw += r
         self.step_cnt += 1
+
+        # Evaluation ends here
         if self.step_cnt == self.eval_steps:
-            self._update_plot()
+            self._update()
             self._reset_monitor()
         return done
 
     def _after_reset(self, observation):
-        self.ep_cnt += 1
-        # print("[%2d][%4d]  RESET" % (self.ep_cnt, self.step_cnt))
+        if self.step_cnt != self.eval_steps:
+            self.ep_cnt += 1
 
-    def _update_plot(self):
-        mean_rw = self.total_rw / self.ep_cnt
+    def _update(self):
+        mean_rw = self.total_rw / (self.ep_cnt - 1)
         max_mean_rw = self.max_mean_rw
-        bg_color = 'on_blue'
-        bg_color = 'on_magenta' if mean_rw > max_mean_rw else bg_color
         self.max_mean_rw = mean_rw if mean_rw > max_mean_rw else max_mean_rw
 
+        self._update_plot(self.crt_training_step, mean_rw)
+        self._display_logs(mean_rw, max_mean_rw)
+        self._update_reports(mean_rw)
+        self.eval_cnt += 1
+
+    def _update_reports(self, mean_rw):
+        idx = self.eval_cnt
+
+        self.eval_frame_idx[idx] = self.crt_training_step
+        self.eval_rw_per_episode[idx] = mean_rw
+        self.eval_rw_per_frame[idx] = self.total_rw / self.step_cnt
+        self.eval_eps_per_eval[idx] = (self.ep_cnt - 1)
+
+        torch.save({
+            'eval_frame_idx': self.eval_frame_idx,
+            'eval_rw_per_episode': self.eval_rw_per_episode,
+            'eval_rw_per_frame': self.eval_rw_per_frame,
+            'eval_eps_per_eval': self.eval_eps_per_eval
+        }, self.cmdl.results_path + "/eval_stats.torch")
+
+    def _update_plot(self, crt_training_step, mean_rw):
         if self.cmdl.display_plots:
             self.vis.line(
-                X=np.array([self.crt_step]),
+                X=np.array([crt_training_step]),
                 Y=np.array([mean_rw]),
                 win=self.plot,
                 update='append'
             )
+
+    def _display_logs(self, mean_rw, max_mean_rw):
+        bg_color = 'on_magenta' if mean_rw > max_mean_rw else 'on_blue'
         print(clr("[Evaluator] done in %5d steps. " % self.step_cnt,
               attrs=['bold'])
               + clr(" rw/ep=%3.2f " % mean_rw, 'white', bg_color,
