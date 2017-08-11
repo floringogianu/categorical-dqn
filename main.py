@@ -7,9 +7,6 @@ from agents import get_agent
 
 
 def train_agent(cmdl):
-    step_cnt = 0
-    ep_cnt = 0
-
     global_time = time.perf_counter()
 
     env = utils.env_factory(cmdl, "training")
@@ -23,36 +20,39 @@ def train_agent(cmdl):
 
     agent.display_setup(env, cmdl)
 
+    ep_cnt = 1
     fps_time = time.perf_counter()
-    while step_cnt < cmdl.training_steps:
 
-        ep_cnt += 1
-        s, r, done = env.reset(), 0, False
+    s, r, done = env.reset(), 0, False
 
-        while not done:
-            a = agent.evaluate_policy(s)
-            _s, _a = s.clone(), a
-            s, r, done, _ = env.step(a)
-            agent.improve_policy(_s, _a, r, s, done)
+    for step_cnt in range(cmdl.training_steps):
+        a = agent.evaluate_policy(s)
+        _s, _a = s.clone(), a
+        s, r, done, _ = env.step(a)
+        agent.improve_policy(_s, _a, r, s, done)
 
-            step_cnt += 1
-            agent.gather_stats(r, done)
+        step_cnt += 1
+        agent.gather_stats(r, done)
 
-            # Do some reporting
-            if step_cnt != 0 and step_cnt % cmdl.report_frequency == 0:
-                agent.display_stats(fps_time)
-                agent.display_model_stats()
-                fps_time = time.perf_counter()
-                gc.collect()
+        # Do some reporting
+        if step_cnt != 0 and step_cnt % cmdl.report_frequency == 0:
+            agent.display_stats(fps_time)
+            agent.display_model_stats()
+            fps_time = time.perf_counter()
+            gc.collect()
 
-            # Start doing an evaluation
-            eval_ready = step_cnt > cmdl.eval_start
-            if eval_ready and (step_cnt % cmdl.eval_frequency == 0):
-                eval_time = time.perf_counter()
-                evaluate_agent(step_cnt, eval_env, eval_agent,
-                               agent.policy, cmdl)
-                gc.collect()
-                fps_time = fps_time + (time.perf_counter() - eval_time)
+        # Start doing an evaluation
+        eval_ready = step_cnt >= cmdl.eval_start
+        if eval_ready and (step_cnt % cmdl.eval_frequency == 0):
+            eval_time = time.perf_counter()
+            evaluate_agent(step_cnt, eval_env, eval_agent,
+                           agent.policy, cmdl)
+            gc.collect()
+            fps_time = fps_time + (time.perf_counter() - eval_time)
+
+        if done:
+            ep_cnt += 1
+            s, r, done = env.reset(), 0, False
 
     agent.display_final_report(ep_cnt, step_cnt, global_time)
 
