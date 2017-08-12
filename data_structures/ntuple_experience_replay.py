@@ -1,5 +1,4 @@
 import torch
-import random
 from collections import namedtuple
 from utils import TorchTypes
 
@@ -44,11 +43,14 @@ class nTupleExperienceReplay(CircularBuffer):
         self.dtype = TorchTypes(cuda)
         self.hist_len = hist_len
 
-    def sample(self):
+    def sample(self, batch_size=None):
+        batch_size = self.batch_size if batch_size is None else batch_size
+        return self._sample(batch_size)
+
+    def _sample(self, batch_size=None):
         fidx = self.fill_idx - 1  # we can only index up to capacity - 2
         hist_len = self.hist_len
         mem = self.memory
-        batch_size = self.batch_size
 
         # sample batch_size indices
         idxs = torch.LongTensor(batch_size).random_(hist_len, fidx)
@@ -88,3 +90,38 @@ class nTupleExperienceReplay(CircularBuffer):
 
         return [batch_size, state_batch, action_batch, reward_batch,
                 next_state_batch, mask]
+
+
+class CachedExperienceReplay(nTupleExperienceReplay):
+    def __init__(self, capacity, batch_size, hist_len, cuda, cached_batches):
+        nTupleExperienceReplay.__init__(self, capacity, batch_size, hist_len,
+                                        cuda)
+
+        self.cached_batches = cached_batches  # no of cached batches
+        self.cache_size = cached_batches * batch_size
+        self.sample_idx = 0
+
+    def sample(self):
+        if self.sample_idx % self.cached_batches == 0:
+            self._fill_cache()
+            self.sample_idx = 0
+        cache = self._sample_from_cache(self.sample_idx)
+        self.sample_idx += 1
+        return cache
+
+    def _fill_cache(self):
+        sz = self.cache_size
+        _, self.cs, self.ca, self.cr, self.cns, self.cd = self._sample(sz)
+
+    def _sample_from_cache(self, batch_idx):
+        batch_sz = self.batch_size
+        sidx = batch_sz * batch_idx
+        eidx = sidx + batch_sz
+        return [
+            batch_sz,
+            self.cs[sidx:eidx],
+            self.ca[sidx:eidx],
+            self.cr[sidx:eidx],
+            self.cns[sidx:eidx],
+            self.cd[sidx:eidx]
+        ]

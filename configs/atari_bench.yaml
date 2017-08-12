@@ -21,14 +21,15 @@ done_after_lost_life: yes
 # estimator settings
 estimator: atari
 hidden_size: 128
-batch_size: 64
+batch_size: 32
 hist_len: 4
 
 # exploration, q-learning, optimization settings
 epsilon: 1
 epsilon_steps: 1000
 experience_replay: nTupleExperienceReplay
-replay_mem_size: 100000
+replay_mem_size: 10000
+cache: 16 # no of batches to cache
 update_freq: 4
 target_update_freq: 10000
 gamma: 0.99
