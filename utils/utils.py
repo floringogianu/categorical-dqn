@@ -23,8 +23,10 @@ def env_factory(cmdl, mode):
     else:
         state_dims = env.observation_space.shape[0:2]
 
+    env_class, hist_len, cuda = cmdl.env_class, cmdl.hist_len, cmdl.cuda
+
     if mode == "training":
-        env = PreprocessFrames(env, cmdl.env_class, cmdl.hist_len, state_dims)
+        env = PreprocessFrames(env, env_class, hist_len, state_dims, cuda)
         if hasattr(cmdl, 'reward_clamp') and cmdl.reward_clamp:
             env = SqueezeRewards(env)
         if hasattr(cmdl, 'done_after_lost_life') and cmdl.done_after_lost_life:
@@ -38,7 +40,7 @@ def env_factory(cmdl, mode):
                       % ("Main", cmdl.eval_env_name), 'red', attrs=['bold']))
             env = gym.make(cmdl.eval_env_name)
 
-        env = PreprocessFrames(env, cmdl.env_class, cmdl.hist_len, state_dims)
+        env = PreprocessFrames(env, env_class, hist_len, state_dims, cuda)
         env = EvaluationMonitor(env, cmdl)
         print('-' * 50)
         return env

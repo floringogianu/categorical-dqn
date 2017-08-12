@@ -9,6 +9,7 @@ from gym import RewardWrapper
 from PIL import Image
 from termcolor import colored as clr
 from collections import OrderedDict
+from utils.torch_types import TorchTypes
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ class SqueezeRewards(RewardWrapper):
 
 
 class PreprocessFrames(ObservationWrapper):
-    def __init__(self, env, env_type, hist_len, state_dims):
+    def __init__(self, env, env_type, hist_len, state_dims, cuda=None):
         super(PreprocessFrames, self).__init__(env)
 
         self.env_type = env_type
@@ -41,7 +42,9 @@ class PreprocessFrames(ObservationWrapper):
         print("[Preprocess Wrapper] for %s with state history of %d frames."
               % (self.env_type, hist_len))
 
-        self.rgb = torch.FloatTensor([.2126, .7152, .0722])
+        self.cuda = False if cuda is None else cuda
+        self.dtype = dtype = TorchTypes(self.cuda)
+        self.rgb = dtype.FT([.2126, .7152, .0722])
 
         # torch.size([1, 4, 24, 24])
         """
@@ -73,8 +76,9 @@ class PreprocessFrames(ObservationWrapper):
         return self._get_concatenated_state(th_img)
 
     def _rgb2y(self, o):
-        o = torch.from_numpy(o).float()
-        return o.view(self.wxh, 3).mv(self.rgb).view(*self.env_wh) / 255
+        o = torch.from_numpy(o).type(self.dtype.FT)
+        s = o.view(self.wxh, 3).mv(self.rgb).view(*self.env_wh) / 255
+        return s.cpu()
 
     def _get_concatenated_state(self, o):
         hist_len = self.hist_len
