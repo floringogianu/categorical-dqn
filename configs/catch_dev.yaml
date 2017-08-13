@@ -31,7 +31,7 @@ target_update_freq: 24
 gamma: 0.99
 optim: Adam
 lr: .000635  # decrease to 0.000135 for hist_len 4
-eps: 0.01  # numerical stability
+eps: 0.00015  # RMSprop: 0.01 | Adam: 0.01/batch_size
 alpha: 0.95  # RMSprop smoothing constant
 
 # support settings
