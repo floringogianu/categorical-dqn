@@ -83,6 +83,7 @@ if __name__ == "__main__":
     # Assuming everything in the config is deterministic already.
     torch.manual_seed(config.seed)
     numpy.random.seed(config.seed)
+    torch.set_num_threads(4)
 
     # Let's do this!
     train_agent(config)
