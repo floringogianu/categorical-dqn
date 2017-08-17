@@ -6,9 +6,10 @@ import gym
 from gym import Wrapper
 from gym import ObservationWrapper
 from gym import RewardWrapper
-from PIL import Image
 from termcolor import colored as clr
 from collections import OrderedDict
+
+from utils.image_utils import BilinearResizer
 from utils.torch_types import TorchTypes
 
 logger = logging.getLogger(__name__)
@@ -28,13 +29,18 @@ class PreprocessFrames(ObservationWrapper):
         super(PreprocessFrames, self).__init__(env)
 
         self.env_type = env_type
-        self.state_dims = state_dims
+        self.state_dims = torch.Size([1]) + state_dims
         self.hist_len = hist_len
         self.env_wh = self.env.observation_space.shape[0:2]
         self.env_ch = self.env.observation_space.shape[2]
         self.wxh = self.env_wh[0] * self.env_wh[1]
 
-        # need to find a better way
+        # if interpolation_type == "bilinear":
+        self.resizer = BilinearResizer(cuda=cuda)
+        # else:
+        #     self.resizer = NNResizer()
+
+        # need to find a better way :))
         if self.env_type == "atari":
             self._preprocess = self._atari_preprocess
         elif self.env_type == "catch":
@@ -61,7 +67,7 @@ class PreprocessFrames(ObservationWrapper):
     def _reset(self):
         # self.hist_state.fill_(0)
         self.d = OrderedDict(
-            {i: torch.FloatTensor(1, 1, *self.state_dims).fill_(0)
+            {i: torch.FloatTensor(1, *self.state_dims).fill_(0)
                 for i in range(self.hist_len)})
         observation = self.env.reset()
         return self._observation(observation)
@@ -70,15 +76,14 @@ class PreprocessFrames(ObservationWrapper):
         return self._get_concatenated_state(self._rgb2y(o))
 
     def _atari_preprocess(self, o):
-        img = Image.fromarray(self._rgb2y(o).numpy())
-        img = np.array(img.resize(self.state_dims, resample=Image.NEAREST))
-        th_img = torch.from_numpy(img)
+        th_img = self._rgb2y(o)
+        th_img = self.resizer(th_img, self.state_dims)
         return self._get_concatenated_state(th_img)
 
     def _rgb2y(self, o):
         o = torch.from_numpy(o).type(self.dtype.FT)
         s = o.view(self.wxh, 3).mv(self.rgb).view(*self.env_wh) / 255
-        return s.cpu()
+        return s
 
     def _get_concatenated_state(self, o):
         hist_len = self.hist_len
