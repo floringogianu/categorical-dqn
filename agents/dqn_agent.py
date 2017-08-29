@@ -65,3 +65,4 @@ class DQNAgent(BaseAgent):
         self.policy_improvement.get_model_stats()
         print("MaxQ=%2.2f.  MemSz=%5d.  Epsilon=%.2f." % (
                 self.max_q, len(self.replay_memory), self.epsilon))
+        self.max_q = -1000
