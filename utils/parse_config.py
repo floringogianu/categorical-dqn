@@ -27,13 +27,16 @@ def parse_cmd_args():
     return args
 
 
-def to_namespace(d, args):
+def to_namespace(d):
     """ Convert a dict to a namespace.
     """
     n = argparse.Namespace()
     for k, v in d.items():
         setattr(n, k, to_namespace(v) if isinstance(v, dict) else v)
+    return n
 
+
+def inject_args(n, args):
     # inject some of the cmdl args into the config namespace
     setattr(n, "experiment_id", args.id)
     setattr(n, "results_path", args.results)
@@ -51,10 +54,16 @@ def check_paths(cmdl):
               % cmdl.results_path, 'red', attrs=['bold']))
 
 
-def parse_config_file(args):
-    f = open(args.config)
+def parse_config_file(path):
+    f = open(path)
     config_data = yaml.load(f, Loader=yaml.SafeLoader)
     f.close()
-    cmdl = to_namespace(config_data, args)
+    return to_namespace(config_data)
+
+
+def get_config():
+    args = parse_cmd_args()
+    cmdl = parse_config_file(args.config)
+    cmdl = inject_args(cmdl, args)
     check_paths(cmdl)
     return cmdl

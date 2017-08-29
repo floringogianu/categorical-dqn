@@ -78,7 +78,7 @@ def evaluate_agent(crt_training_step, eval_env, eval_agent, policy, cmdl):
 if __name__ == "__main__":
 
     # Parse cmdl args for the config file and return config as Namespace
-    config = utils.parse_config_file(utils.parse_cmd_args())
+    config = utils.get_config()
 
     # Assuming everything in the config is deterministic already.
     torch.manual_seed(config.seed)
