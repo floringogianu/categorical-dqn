@@ -71,8 +71,8 @@ class CategoricalPolicyImprovement(object):
         # Compute probabilities p(x, a)
         probs = self.target_policy(next_states).data
         qs = torch.mul(probs, self.support.expand_as(probs))
-        argmax_a = qs.sum(2).max(1)[1].squeeze(1)
-        action_mask = argmax_a.unsqueeze(2).expand(batch_sz, 1, self.atoms_no)
+        argmax_a = qs.sum(2).max(1)[1].unsqueeze(1).unsqueeze(1)
+        action_mask = argmax_a.expand(batch_sz, 1, self.atoms_no)
         qa_probs = probs.gather(1, action_mask).squeeze()
 
         # Mask gamma and reshape it torgether with rewards to fit p(x,a).

@@ -32,8 +32,9 @@ Train a DQN baseline with `python main.py -cf configs/catch_dqn.yaml`.
 
 ## To Do
 
-- [ ] Add some training curves.
-- [ ] Run on Atari.
+- [x] Migrate to `Pytorch 0.2.0`. Breaks compatibility with `0.1.12`.
+- [x] Add some training curves.
+- [x] Run on Atari.
 - [x] Add proper evaluation.
 
 ## Results

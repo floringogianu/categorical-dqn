@@ -32,7 +32,7 @@ class DQNPolicyImprovement(object):
         """
         states = Variable(states)
         actions = Variable(actions)
-        rewards = Variable(rewards)
+        rewards = Variable(rewards.squeeze())
         next_states = Variable(next_states, volatile=True)
 
         # Compute Q(s, a)

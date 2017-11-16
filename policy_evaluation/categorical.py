@@ -20,4 +20,4 @@ class CategoricalPolicyEvaluation(object):
         probs = self.policy(Variable(state, volatile=True)).data
         support = self.support.expand_as(probs)
         q_val, argmax_a = torch.mul(probs, support).squeeze().sum(1).max(0)
-        return (q_val[0, 0], argmax_a[0, 0])
+        return (q_val[0], argmax_a[0])
