@@ -29,7 +29,7 @@ class CategoricalDQNAgent(DQNAgent):
         h = self.cmdl.hist_len - 1
         self.replay_memory.push(_s[0, h], _a, r, done)
 
-        if len(self.replay_memory) < self.cmdl.batch_size:
+        if len(self.replay_memory) < self.cmdl.start_learning_after:
             return
 
         if (self.step_cnt % self.cmdl.update_freq == 0) and (

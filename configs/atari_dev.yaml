@@ -29,6 +29,7 @@ epsilon: 1
 epsilon_steps: 1000000
 experience_replay: nTupleExperienceReplay
 replay_mem_size: 1000000
+start_learning_after: 1000
 update_freq: 4
 target_update_freq: 40000
 gamma: 0.99

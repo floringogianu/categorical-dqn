@@ -15,16 +15,19 @@ display_plots: no # uses vizdom for plotting
 
 # training vars
 training_steps: 1000000
+
 # estimator settings
 estimator: catch
 batch_size: 64
 hidden_size: 128
 hist_len: 2
+
 # exploration, q-learning, optimization settings
 epsilon: 1
 epsilon_steps: 100000
 experience_replay: nTupleExperienceReplay
 replay_mem_size: 100000
+start_learning_after: 1000
 update_freq: 2
 target_update_freq: 24
 gamma: 0.99
