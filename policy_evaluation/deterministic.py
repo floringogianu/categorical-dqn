@@ -18,4 +18,4 @@ class DeterministicPolicy(object):
         result = self.policy(Variable(state_batch, volatile=True))
         print(result)
         """
-        return (q_val[0], argmax_a[0])
+        return (q_val.squeeze()[0], argmax_a.squeeze()[0])
