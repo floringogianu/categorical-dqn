@@ -43,7 +43,8 @@ class DQNPolicyImprovement(object):
         q_target_values = Variable(torch.zeros(batch_sz).type(self.dtype.FT))
 
         # Bootstrap for non-terminal states
-        q_target_values[mask] = self.target_policy(next_states).max(1)[0][mask]
+        q_target_values[mask] = self.target_policy(next_states).max(
+                1, keepdim=True)[0][mask]
         q_target_values.volatile = False      # So we don't mess the huber loss
         expected_q_values = (q_target_values * self.gamma) + rewards
 
