@@ -88,6 +88,9 @@ class CategoricalPolicyImprovement(object):
         b = (bellman_op - self.v_min) / self.delta_z
         l = b.floor().long()
         u = b.ceil().long()
+        # Fix disappearing probability mass when l = b = u (b is int)
+        l[(u > 0) * (l == u)] -= 1
+        u[(l < (self.atoms_no - 1)) * (l == u)] += 1
 
         # Distribute probability
         """
