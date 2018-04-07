@@ -50,7 +50,7 @@ class CategoricalPolicyImprovement(object):
         target_qa_probs = self._get_categorical(next_states, rewards, mask)
 
         # Compute the cross-entropy of phi(TZ(x_,a)) || Z(x,a)
-        qa_probs.data.clamp_(0.01, 0.99)  # Tudor's trick for avoiding nans
+        qa_probs = qa_probs.clamp(min=1e-3)  # Tudor's trick for avoiding nans
         loss = - torch.sum(target_qa_probs * torch.log(qa_probs))
 
         # Accumulate gradients
